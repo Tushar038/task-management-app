@@ -1,0 +1,90 @@
+.page {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 16px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+  }
+  
+  button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: #2563eb;
+    color: white;
+  }
+  
+  button.secondary {
+    background-color: #e5e7eb;
+    color: #111;
+  }
+  
+  button + button {
+    margin-left: 8px;
+  }
+  
+  nav {
+    margin-bottom: 20px;
+  }
+  
+  nav a {
+    margin-right: 15px;
+    font-weight: 500;
+  }
+  
+  .badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  
+  .badge.todo {
+    background-color: #fde68a;
+    color: #92400e;
+  }
+  
+  .badge.in-progress {
+    background-color: #bfdbfe;
+    color: #1e3a8a;
+  }
+  
+  .badge.done {
+    background-color: #bbf7d0;
+    color: #065f46;
+  }
+  .dark body {
+    background-color: #111827;
+    color: #e5e7eb;
+  }
+  
+  .dark .card {
+    background-color: #1f2933;
+    color: #e5e7eb;
+  }
+  
+  .dark input,
+  .dark select {
+    background-color: #111827;
+    color: #e5e7eb;
+    border-color: #374151;
+  }
+  
+  .dark a {
+    color: #93c5fd;
+  }
+  
