@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from app.db.base_class import Base
+from app.models.user import User
+
 
 load_dotenv()
 
