@@ -12,4 +12,4 @@ COPY . .
 # make wait script executable INSIDE image
 RUN chmod +x /app/wait-for-db.sh
 
-CMD ./wait-for-db.sh && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
+CMD sh -c "./wait-for-db.sh && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
