@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from app.db.base import Base
+from app.models import User
 
 
 load_dotenv()
@@ -20,9 +22,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from app.db.base import Base
-from app.models import user
 
 target_metadata = Base.metadata
 
