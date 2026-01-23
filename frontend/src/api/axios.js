@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "../utils/auth";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "https://task-management-app-production-f119.up.railway.app",
 });
 
 api.interceptors.request.use((config) => {
