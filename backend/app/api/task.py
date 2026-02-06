@@ -24,9 +24,9 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 def create_task(
     task: TaskCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    # Role check
+    # Only ADMIN / MANAGER
     if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
         forbidden("You are not allowed to perform this action")
 
@@ -35,14 +35,21 @@ def create_task(
     if not team:
         not_found("Team not found")
 
-    # 🔐 IDOR protection: validate assigned user
-    assignee = (
-        db.query(User)
-        .filter(User.id == task.assigned_to_id)
-        .first()
-    )
+    # MANAGER can create tasks only for their team
+    if (
+        current_user.role == UserRole.MANAGER
+        and team.manager_id != current_user.id
+    ):
+        forbidden("You are not allowed to create tasks for this team")
+
+    # Validate assigned user
+    assignee = db.query(User).filter(User.id == task.assigned_to_id).first()
     if not assignee:
         not_found("Assigned user does not exist")
+
+    # Assigned user must belong to same team
+    if assignee.team_id != team.id:
+        forbidden("User does not belong to this team")
 
     new_task = Task(
         title=task.title,
@@ -61,19 +68,30 @@ def create_task(
 
 
 # -----------------------------
-# LIST TASKS (ROLE + PAGINATION)
+# LIST TASKS (RBAC + PAGINATION)
 # -----------------------------
 @router.get("/", response_model=list[TaskResponse])
 def list_tasks(
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     query = db.query(Task)
 
-    # Role-based filtering
-    if current_user.role != UserRole.ADMIN:
+    # ADMIN → all tasks
+    if current_user.role == UserRole.ADMIN:
+        pass
+
+    # MANAGER → tasks of their teams
+    elif current_user.role == UserRole.MANAGER:
+        query = (
+            query.join(Task.team)
+            .filter(Team.manager_id == current_user.id)
+        )
+
+    # USER → only assigned tasks
+    else:
         query = query.filter(Task.assigned_to_id == current_user.id)
 
     tasks = (
@@ -94,18 +112,19 @@ def update_task_status(
     task_id: int,
     status_update: TaskStatusUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         not_found("Task not found")
 
-    # Ownership / role check
+    # ADMIN → always allowed
+    # USER → only own task
     if (
         current_user.role != UserRole.ADMIN
         and task.assigned_to_id != current_user.id
     ):
-        forbidden("You are not allowed to perform this action")
+        forbidden("You are not allowed to update this task")
 
     task.status = status_update.status
     db.commit()

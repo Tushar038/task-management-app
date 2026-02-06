@@ -34,8 +34,8 @@ function Login() {
   };
 
   return (
-    <div className="page">
-      <div className="card" style={{ maxWidth: "400px", margin: "auto" }}>
+    <div className="auth-container">
+      <div className="auth-card">
         <h2>Login</h2>
         <p>Welcome back 👋</p>
 

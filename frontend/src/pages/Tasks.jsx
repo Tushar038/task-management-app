@@ -1,158 +1,154 @@
+import Layout from "../components/Layout";
 import { useEffect, useState } from "react";
-import {
-  createTask,
-  fetchTasks,
-  updateTaskStatus,
-} from "../api/tasks";
-import { fetchTeams } from "../api/teams";
-import Toast from "../components/Toast";
-
-/* 🔹 Status badge helper */
-const getStatusClass = (status) => {
-  if (status === "TODO") return "badge todo";
-  if (status === "IN_PROGRESS") return "badge in-progress";
-  if (status === "DONE") return "badge done";
-  return "badge";
-};
+import { useAuth } from "../context/AuthContext";
+import { fetchTasks, createTask, updateTaskStatus } from "../api/tasks";
+import { fetchTeams, fetchTeamMembers } from "../api/teams";
 
 function Tasks() {
+  const { user } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [members, setMembers] = useState([]);
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [teamId, setTeamId] = useState("");
-  const [assignedToId, setAssignedToId] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
 
-  const [toast, setToast] = useState({ message: "", type: "" });
-
-  const loadData = async () => {
-    const taskRes = await fetchTasks();
-    const teamRes = await fetchTeams();
-    setTasks(taskRes.data);
-    setTeams(teamRes.data);
+  // Load tasks
+  const loadTasks = async () => {
+    const res = await fetchTasks();
+    setTasks(res.data);
   };
 
+  // Initial load
   useEffect(() => {
-    loadData();
+    loadTasks();
+
+    if (user.role !== "USER") {
+      fetchTeams().then(res => setTeams(res.data));
+    }
   }, []);
 
-  /* 🔹 Create task with proper backend error handling */
-  const handleCreate = async () => {
-    try {
-      await createTask({
-        title,
-        description,
-        team_id: Number(teamId),
-        assigned_to_id: Number(assignedToId),
-      });
+  // Load members when team changes
+  useEffect(() => {
+    if (!teamId) return;
 
-      setToast({ message: "Task created successfully", type: "success" });
-      setTimeout(() => setToast({ message: "", type: "" }), 2000);
+    fetchTeamMembers(teamId).then(res => {
+      setMembers(res.data);
+    });
+  }, [teamId]);
 
-      setTitle("");
-      setDescription("");
-      setAssignedToId("");
-      loadData();
-    } catch (error) {
-      const message =
-        error.response?.data?.detail?.message ||
-        "Failed to create task";
-
-      setToast({ message, type: "error" });
-      setTimeout(() => setToast({ message: "", type: "" }), 2000);
+  // Create task
+  const handleCreateTask = async () => {
+    if (!title || !teamId || !assignedTo) {
+      alert("Fill all fields");
+      return;
     }
+
+    await createTask({
+      title,
+      team_id: Number(teamId),
+      assigned_to_id: Number(assignedTo),
+    });
+
+    setTitle("");
+    setTeamId("");
+    setAssignedTo("");
+    loadTasks();
   };
 
-  /* 🔹 Update task status with proper backend error handling */
-  const handleStatusChange = async (id, status) => {
-    try {
-      await updateTaskStatus(id, status);
-      setToast({ message: "Task status updated", type: "success" });
-      setTimeout(() => setToast({ message: "", type: "" }), 2000);
-      loadData();
-    } catch (error) {
-      const message =
-        error.response?.data?.detail?.message ||
-        "Failed to update task status";
-
-      setToast({ message, type: "error" });
-      setTimeout(() => setToast({ message: "", type: "" }), 2000);
-    }
+  // Update task status
+  const changeStatus = async (taskId, status) => {
+    await updateTaskStatus(taskId, { status });
+    loadTasks();
   };
 
   return (
-    <div>
-      {/* 🔔 Toast */}
-      <Toast message={toast.message} type={toast.type} />
+    <Layout>
+      <h1>{user.role === "USER" ? "My Tasks" : "Team Tasks"}</h1>
 
-      <h2>Tasks</h2>
+      {/* Create Task Section (Manager only) */}
+      {user.role !== "USER" && (
+        <div className="card">
+          <h3>Create Task</h3>
 
-      <h3>Create Task</h3>
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+          <input
+            placeholder="Task title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
 
-      <input
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+          <select value={teamId} onChange={e => setTeamId(e.target.value)}>
+            <option value="">Select Team</option>
+            {teams.map(team => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
 
-      <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-        <option value="">Select Team</option>
-        {teams.map((team) => (
-          <option key={team.id} value={team.id}>
-            {team.name}
-          </option>
-        ))}
-      </select>
+          <select
+            value={assignedTo}
+            onChange={e => setAssignedTo(e.target.value)}
+            disabled={!teamId}
+          >
+            <option value="">Assign Member</option>
+            {members.map(member => (
+              <option key={member.id} value={member.id}>
+                {member.email}
+              </option>
+            ))}
+          </select>
 
-      <input
-        placeholder="Assign to User ID"
-        value={assignedToId}
-        onChange={(e) => setAssignedToId(e.target.value)}
-      />
+          <button onClick={handleCreateTask}>Create Task</button>
+        </div>
+      )}
 
-      <button onClick={handleCreate}>Create Task</button>
+      {/* Task List */}
+      {tasks.length === 0 ? (
+        <div className="empty">
+          <h3>No tasks yet</h3>
+        </div>
+      ) : (
+        tasks.map(task => (
+          <div key={task.id} className="card">
+            <h4>{task.title}</h4>
 
-      <hr />
-
-      <h3>Task List</h3>
-      <ul>
-        {tasks.map((task) => (
-          <li key={task.id}>
-            <strong>{task.title}</strong>
-
-            <span className={getStatusClass(task.status)}>
-              {task.status}
-            </span>
-
-            <div style={{ marginTop: "8px" }}>
-              <button
-                className="secondary"
-                onClick={() =>
-                  handleStatusChange(task.id, "IN_PROGRESS")
-                }
-              >
-                In Progress
-              </button>
-
-              <button
-                className="secondary"
-                onClick={() =>
-                  handleStatusChange(task.id, "DONE")
-                }
-              >
-                Done
-              </button>
+            {/* Status Badge */}
+            <div className={`badge ${task.status.toLowerCase()}`}>
+              {task.status.replace("_", " ")}
             </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+
+            {/* Status Controls */}
+            {(user.role === "MANAGER" ||
+              task.assigned_to_id === user.id) && (
+              <div className="actions">
+                {task.status === "TODO" && (
+                  <button
+                    onClick={() =>
+                      changeStatus(task.id, "IN_PROGRESS")
+                    }
+                  >
+                    Start
+                  </button>
+                )}
+
+                {task.status === "IN_PROGRESS" && (
+                  <button
+                    onClick={() =>
+                      changeStatus(task.id, "DONE")
+                    }
+                  >
+                    Done
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </Layout>
   );
 }
 

@@ -5,6 +5,10 @@ from app.api.auth import router as auth_router
 from app.api.team import router as teams_router
 from app.api.task import router as tasks_router
 from app.api.admin import router as admin_router
+from app.api.user import router as user_router
+from app.api.manager import router as manager_router
+
+
 from app.core.config import settings
 import logging
 
@@ -36,6 +40,9 @@ app.include_router(auth_router)
 app.include_router(teams_router)
 app.include_router(tasks_router)
 app.include_router(admin_router)
+app.include_router(user_router)
+app.include_router(manager_router)
+
 
 @app.get("/health")
 def health_check():

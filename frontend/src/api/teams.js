@@ -1,15 +1,17 @@
 import api from "./axios";
-import { authHeader } from "./authHeader";
 
-export const createTeam = (name) =>
-  api.post(
-    "/teams",
-    { name },
-    { headers: authHeader() }
-  );
+export const fetchTeams = () => {
+  return api.get("/teams");
+};
 
-export const fetchTeams = () =>
-  api.get(
-    "/teams",
-    { headers: authHeader() }
-  );
+export const createTeam = (data) => {
+  return api.post("/teams", data);
+};
+
+export const addMember = (teamId, userId) => {
+  return api.post(`/teams/${teamId}/add-member/${userId}`);
+};
+
+export const fetchTeamMembers = (teamId) => {
+  return api.get(`/teams/${teamId}/members`);
+};
