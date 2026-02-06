@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
 function AdminDashboard() {
@@ -34,12 +35,19 @@ function AdminDashboard() {
     );
   }
 
-  const chartData = stats.tasks_by_status
-    ? Object.entries(stats.tasks_by_status).map(([key, value]) => ({
+  // Convert backend summary to chart format
+  const chartData = stats.task_status_summary
+    ? Object.entries(stats.task_status_summary).map(([key, value]) => ({
         name: key,
         value: value,
       }))
     : [];
+  const COLORS = {
+    TODO: "#facc15",
+    IN_PROGRESS: "#3b82f6",
+    DONE: "#22c55e"
+  };
+  
 
   return (
     <Layout>
@@ -48,17 +56,17 @@ function AdminDashboard() {
       <div className="grid">
         <div className="card">
           <h3>Total Users</h3>
-          <p>{stats.total_users ?? 0}</p>
+          <p>{stats.users ?? 0}</p>
         </div>
 
         <div className="card">
           <h3>Total Teams</h3>
-          <p>{stats.total_teams ?? 0}</p>
+          <p>{stats.teams ?? 0}</p>
         </div>
 
         <div className="card">
           <h3>Total Tasks</h3>
-          <p>{stats.total_tasks ?? 0}</p>
+          <p>{stats.tasks ?? 0}</p>
         </div>
       </div>
 
@@ -73,7 +81,13 @@ function AdminDashboard() {
                 dataKey="value"
                 nameKey="name"
                 outerRadius={100}
-              />
+                label
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={index} fill={COLORS[entry.name] || "#8884d8"} />
+                ))}
+              </Pie>
+
               <Tooltip />
               <Legend />
             </PieChart>

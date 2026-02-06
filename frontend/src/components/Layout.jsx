@@ -1,11 +1,12 @@
 import Navbar from "./Navbar";
-import "./Layout.css";
 
 function Layout({ children }) {
   return (
     <>
       <Navbar />
-      <div className="page">{children}</div>
+      <div className="page-container">
+        {children}
+      </div>
     </>
   );
 }
