@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   stages {
+
     stage('Checkout Code') {
       steps {
         checkout scm
@@ -10,13 +11,20 @@ pipeline {
 
     stage('Build Backend Image') {
       steps {
-        sh 'docker build -t task-backend ./backend'
+        sh 'docker build -t tusharnagar/task-backend:latest ./backend'
       }
     }
 
     stage('Build Frontend Image') {
       steps {
-        sh 'docker build -t task-frontend ./frontend'
+        sh 'docker build -t tusharnagar/task-frontend:latest ./frontend'
+      }
+    }
+
+    stage('Push Images to DockerHub') {
+      steps {
+        sh 'docker push tusharnagar/task-backend:latest'
+        sh 'docker push tusharnagar/task-frontend:latest'
       }
     }
 

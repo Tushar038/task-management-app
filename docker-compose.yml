@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:15
-    container_name: task_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,24 +11,20 @@ services:
       - "5432:5432"
 
   backend:
-    build: ./backend
-    container_name: task_backend
+    image: tusharnagar/task-backend:latest
     env_file:
       - .env
     depends_on:
       - db
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app  
 
   frontend:
-    build: ./frontend
-    container_name: task_frontend
-    ports:
-      - "5173:5173"
+    image: tusharnagar/task-frontend:latest
     depends_on:
       - backend
+    ports:
+      - "5173:5173"
 
 volumes:
   postgres_data:
