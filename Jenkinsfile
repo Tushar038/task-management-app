@@ -21,7 +21,19 @@ pipeline {
       }
     }
 
-    stage('Push Images to DockerHub') {
+    stage('Docker Login') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'dockerhub-creds',
+          usernameVariable: 'DOCKER_USER',
+          passwordVariable: 'DOCKER_PASS'
+        )]) {
+          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+        }
+      }
+    }
+
+    stage('Push Images') {
       steps {
         sh 'docker push tusharnagar/task-backend:latest'
         sh 'docker push tusharnagar/task-frontend:latest'
