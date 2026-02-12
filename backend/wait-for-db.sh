@@ -2,9 +2,11 @@
 
 echo "⏳ Waiting for PostgreSQL..."
 
-# Extract host and port from DATABASE_URL
-DB_HOST=$(echo $DATABASE_URL | sed -E 's|.*@([^:]+):.*|\1|')
-DB_PORT=$(echo $DATABASE_URL | sed -E 's|.*:([0-9]+)/.*|\1|')
+# Extract host
+DB_HOST=$(echo $DATABASE_URL | awk -F[@:/] '{print $4}')
+
+# Extract port
+DB_PORT=$(echo $DATABASE_URL | awk -F[@:/] '{print $5}')
 
 echo "Host: $DB_HOST"
 echo "Port: $DB_PORT"
